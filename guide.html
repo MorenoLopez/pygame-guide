@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pygame Learning Guide - Build a Mario-like Platformer</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+            --code-bg: #0d1117;
+            --code-border: #30363d;
+            --sidebar-width: 280px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 24px 0;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 0 24px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        .sidebar-header h1 {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        .sidebar-header p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .nav-section { margin-bottom: 8px; }
+        .nav-section-title {
+            padding: 8px 24px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .nav-link {
+            display: block;
+            padding: 8px 24px 8px 32px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-hover);
+            border-left-color: var(--accent);
+        }
+        .nav-link.active {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            border-left-color: var(--accent);
+            font-weight: 500;
+        }
+        .main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            max-width: 900px;
+            padding: 48px 48px 80px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 48px;
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-weight: 600;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        h3 {
+            font-size: 1.3rem;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        h4 {
+            font-size: 1.1rem;
+            margin-top: 24px;
+            margin-bottom: 10px;
+            color: var(--warning);
+            font-weight: 600;
+        }
+        p { margin-bottom: 16px; color: var(--text-primary); }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 20px 0;
+            position: relative;
+        }
+        pre::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        pre code { color: #e6edf3; }
+        p code, li code, td code {
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--accent-hover);
+        }
+        .keyword { color: #ff7b72; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; font-style: italic; }
+        .function { color: #d2a8ff; }
+        .number { color: #79c0ff; }
+        .class-name { color: #ffa657; }
+        .builtin { color: #ff7b72; }
+        .info-box {
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-left: 4px solid;
+        }
+        .info-box.tip {
+            background: rgba(47, 129, 247, 0.1);
+            border-color: var(--accent);
+        }
+        .info-box.warning {
+            background: rgba(210, 153, 34, 0.1);
+            border-color: var(--warning);
+        }
+        .info-box.danger {
+            background: rgba(248, 81, 73, 0.1);
+            border-color: var(--danger);
+        }
+        .info-box.success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--success);
+        }
+        .info-box-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-box.tip .info-box-title { color: var(--accent); }
+        .info-box.warning .info-box-title { color: var(--warning); }
+        .info-box.danger .info-box-title { color: var(--danger); }
+        .info-box.success .info-box-title { color: var(--success); }
+        ul, ol { margin: 16px 0; padding-left: 28px; }
+        li { margin-bottom: 8px; color: var(--text-primary); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        th {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        tr:hover td { background: var(--bg-tertiary); }
+        .hero {
+            text-align: center;
+            padding: 40px 0 32px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 4px;
+        }
+        .badge.blue { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+        .badge.green { background: rgba(63, 185, 80, 0.15); color: var(--success); }
+        .badge.orange { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
+        .chapter-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-right: 12px;
+        }
+        kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-family: monospace;
+            font-size: 0.85em;
+            box-shadow: 0 2px 0 var(--border);
+        }
+        .file-tree {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px 24px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            margin: 20px 0;
+        }
+        .file-tree .folder { color: var(--accent); }
+        .file-tree .file { color: var(--text-secondary); }
+        .file-tree .indent { margin-left: 24px; }
+        hr { border: none; height: 1px; background: var(--border); margin: 48px 0; }
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; padding: 24px; }
+        }
+        section { scroll-margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>Pygame Guide</h1>
+                <p>From Zero to Platformer</p>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Getting Started</div>
+                <a href="#intro" class="nav-link">Introduction</a>
+                <a href="#install" class="nav-link">Installation</a>
+                <a href="#project-structure" class="nav-link">Project Structure</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Core Concepts</div>
+                <a href="#ch1" class="nav-link">1. Window & Game Loop</a>
+                <a href="#ch2" class="nav-link">2. Surfaces & Drawing</a>
+                <a href="#ch3" class="nav-link">3. Images & Sprites</a>
+                <a href="#ch4" class="nav-link">4. Keyboard Input</a>
+                <a href="#ch5" class="nav-link">5. Animation</a>
+                <a href="#ch6" class="nav-link">6. Physics & Collision</a>
+                <a href="#ch7" class="nav-link">7. Tilemaps & Levels</a>
+                <a href="#ch8" class="nav-link">8. Enemies & Collectibles</a>
+                <a href="#ch9" class="nav-link">9. Camera & Scrolling</a>
+                <a href="#ch10" class="nav-link">10. UI & Game States</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Complete Project</div>
+                <a href="#ch11" class="nav-link">11. Full Game Breakdown</a>
+                <a href="#ch12" class="nav-link">12. Running the Game</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Reference</div>
+                <a href="#cheatsheet" class="nav-link">Quick API Reference</a>
+                <a href="#resources" class="nav-link">Resources</a>
+            </div>
+        </nav>
+        <main class="main">
+            <div class="hero">
+                <h1>Pygame Learning Guide</h1>
+                <p>Learn Pygame by building a complete Mario-like platformer from scratch</p>
+                <div style="margin-top: 20px;">
+                    <span class="badge blue">Python 3.8+</span>
+                    <span class="badge green">Pygame 2.x</span>
+                    <span class="badge orange">Beginner Friendly</span>
+                </div>
+            </div>
+
+            <section id="intro">
+                <h2>Introduction</h2>
+                <p><strong>Pygame</strong> is a set of Python modules designed for writing video games. It provides functionality for creating windows, handling input, drawing shapes, playing sounds, and managing images — everything you need to build 2D games.</p>
+                <p>This guide will teach you Pygame step by step, and by the end, you will have built a <strong>complete platformer game</strong> similar to classic Mario. The game includes:</p>
+                <ul>
+                    <li>A player character with idle, run, and jump animations</li>
+                    <li>Platform collision and gravity physics</li>
+                    <li>Enemy AI with patrol behavior</li>
+                    <li>Collectible coins with floating animation</li>
+                    <li>Multiple levels loaded from text maps</li>
+                    <li>A smooth camera that follows the player</li>
+                    <li>Game states: Menu, Playing, Paused, Game Over, Victory</li>
+                </ul>
+                <div class="info-box tip">
+                    <div class="info-box-title">Tip</div>
+                    <p>You do not need prior game development experience. Basic Python knowledge (variables, functions, classes) is enough to follow along.</p>
+                </div>
+            </section>
+
+            <section id="install">
+                <h2>Installation</h2>
+                <p>First, make sure you have Python 3.8 or newer installed. Then install Pygame:</p>
+                <pre data-lang="bash"><code>pip install pygame</code></pre>
+                <p>Verify the installation by running this quick test:</p>
+                <pre data-lang="python"><code><span class="keyword">import</span> pygame
+pygame.init()
+<span class="function">print</span>(pygame.version.ver)  <span class="comment"># Should print something like "2.5.2"</span>
+pygame.quit()</code></pre>
+            </section>
+
+            <section id="project-structure">
+                <h2>Project Structure</h2>
+                <p>Here is how our project is organized:</p>
+                <div class="file-tree">
+<span class="folder">pygame-platformer/</span>
+<div class="indent">
+    <span class="folder">assets/</span>
+    <div class="indent">
+        <span class="folder">images/</span>
+        <div class="indent">
+            <span class="file">player_idle.png</span>
+            <span class="file">player_run1.png</span>
+            <span class="file">player_run2.png</span>
+            <span class="file">player_jump.png</span>
+            <span class="file">tile_grass.png</span>
+            <span class="file">tile_dirt.png</span>
+            <span class="file">tile_brick.png</span>
+            <span class="file">tile_question.png</span>
+            <span class="file">coin.png</span>
+            <span class="file">enemy.png</span>
+            <span class="file">spike.png</span>
+            <span class="file">flag.png</span>
+            <span class="file">heart.png</span>
+            <span class="file">cloud.png</span>
+            <span class="file">bush.png</span>
+            <span class="file">mountain.png</span>
+        </div>
+    </div>
+    <span class="folder">src/</span>
+    <div class="indent">
+        <span class="file">game.py</span>
+    </div>
+    <span class="file">guide.html</span>
+    <span class="file">requirements.txt</span>
+</div>
+                </div>
+                <p>All game code lives in <code>src/game.py</code>. Assets are loaded from the <code>assets/images/</code> folder.</p>
+            </section>
+
+            <hr>
+
+            <section id="ch1">
+                <h2><span class="chapter-number">1</span>Window & Game Loop</h2>
+                <p>Every Pygame application starts with three things: initializing Pygame, creating a window, and running a <strong>game loop</strong> that updates and draws everything every frame.</p>
+                <h3>The Game Loop Pattern</h3>
+                <p>The game loop is the heartbeat of any game. It runs continuously until the player quits:</p>
+                <pre data-lang="python"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+<span class="comment"># 1. Initialize Pygame</span>
+pygame.init()
+
+<span class="comment"># 2. Create a window (width, height)</span>
+screen = pygame.display.set_mode((<span class="number">800</span>, <span class="number">600</span>))
+pygame.display.set_caption(<span class="string">"My First Game"</span>)
+
+<span class="comment"># 3. Create a clock to control frame rate</span>
+clock = pygame.time.Clock()
+
+<span class="comment"># 4. Game Loop</span>
+running = <span class="keyword">True</span>
+<span class="keyword">while</span> running:
+    <span class="comment"># --- Event Handling ---</span>
+    <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():
+        <span class="keyword">if</span> event.type == pygame.QUIT:
+            running = <span class="keyword">False</span>
+
+    <span class="comment"># --- Update Logic ---</span>
+    <span class="comment"># (move objects, check collisions, etc.)</span>
+
+    <span class="comment"># --- Draw Everything ---</span>
+    screen.fill((<span class="number">30</span>, <span class="number">30</span>, <span class="number">50</span>))  <span class="comment"># Dark blue background</span>
+    <span class="comment"># draw your game objects here...</span>
+
+    <span class="comment"># 5. Flip the display (show what we drew)</span>
+    pygame.display.flip()
+
+    <span class="comment"># 6. Limit to 60 frames per second</span>
+    clock.tick(<span class="number">60</span>)
+
+<span class="comment"># 7. Clean up</span>
+pygame.quit()
+sys.exit()</code></pre>
+                <div class="info-box tip">
+                    <div class="info-box-title">Key Concept</div>
+                    <p>The loop has three phases: <strong>Handle Events</strong> (input), <strong>Update</strong> (logic), <strong>Draw</strong> (rendering). This pattern is universal in game development.</p>
+                </div>
+                <h3>Understanding the Clock</h3>
+                <p><code>clock.tick(60)</code> pauses just long enough to maintain 60 FPS. If your game runs too fast, everything will appear sped up. The clock ensures consistent speed across different computers.</p>
+                <table>
+                    <tr><th>Function</th><th>Purpose</th></tr>
+                    <tr><td><code>pygame.init()</code></td><td>Initialize all Pygame modules</td></tr>
+                    <tr><td><code>pygame.display.set_mode()</code></td><td>Create the game window</td></tr>
+                    <tr><td><code>pygame.event.get()</code></td><td>Get all pending input events</td></tr>
+                    <tr><td><code>pygame.display.flip()</code></td><td>Update the full screen surface</td></tr>
+                    <tr><td><code>clock.tick(fps)</code></td><td>Limit game to target frame rate</td></tr>
+                </table>
+            </section>
+
+            <section id="ch2">
+                <h2><span class="chapter-number">2</span>Surfaces & Drawing</h2>
+                <p>In Pygame, everything you draw is a <strong>Surface</strong> — a rectangular area of pixels. The screen itself is a surface. You can create new surfaces, draw on them, and blit (copy) them onto other surfaces.</p>
+                <h3>Creating and Filling Surfaces</h3>
+                <pre data-lang="python"><code><span class="comment"># Create a transparent surface (32x32 pixels)</span>
+surf = pygame.Surface((<span class="number">32</span>, <span class="number">32</span>), pygame.SRCALPHA)
+
+<span class="comment"># Fill it with a color (R, G, B)</span>
+surf.fill((<span class="number">255</span>, <span class="number">100</span>, <span class="number">50</span>))  <span class="comment"># Orange-red</span>
+
+<span class="comment"># Draw it on the screen at position (100, 200)</span>
+screen.blit(surf, (<span class="number">100</span>, <span class="number">200</span>))</code></pre>
+                <h3>Drawing Shapes</h3>
+                <p>Pygame provides functions to draw basic shapes directly on any surface:</p>
+                <pre data-lang="python"><code><span class="comment"># Rectangle: (surface, color, rect, width=0)</span>
+pygame.draw.rect(screen, (<span class="number">50</span>, <span class="number">200</span>, <span class="number">50</span>), (<span class="number">100</span>, <span class="number">100</span>, <span class="number">50</span>, <span class="number">80</span>))
+
+<span class="comment"># Circle: (surface, color, center, radius, width=0)</span>
+pygame.draw.circle(screen, (<span class="number">255</span>, <span class="number">215</span>, <span class="number">0</span>), (<span class="number">300</span>, <span class="number">200</span>), <span class="number">25</span>)
+
+<span class="comment"># Line: (surface, color, start_pos, end_pos, width=1)</span>
+pygame.draw.line(screen, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>), (<span class="number">0</span>, <span class="number">0</span>), (<span class="number">800</span>, <span class="number">600</span>), <span class="number">3</span>)
+
+<span class="comment"># Polygon: (surface, color, point_list)</span>
+pygame.draw.polygon(screen, (<span class="number">200</span>, <span class="number">50</span>, <span class="number">50</span>), [(<span class="number">400</span>,<span class="number">100</span>), (<span class="number">350</span>,<span class="number">200</span>), (<span class="number">450</span>,<span class="number">200</span>)])</code></pre>
+                <div class="info-box warning">
+                    <div class="info-box-title">Important</div>
+                    <p>Drawing is <strong>not persistent</strong>. Every frame, you must redraw everything. If you only draw once, it will disappear on the next frame when <code>screen.fill()</code> covers it.</p>
+                </div>
+                <h3>Colors in Pygame</h3>
+                <p>Colors are tuples of <code>(Red, Green, Blue)</code> with values from 0 to 255:</p>
+                <ul>
+                    <li><code>(255, 0, 0)</code> — Red</li>
+                    <li><code>(0, 255, 0)</code> — Green</li>
+                    <li><code>(0, 0, 255)</code> — Blue</li>
+                    <li><code>(255, 255, 255)</code> — White</li>
+                    <li><code>(0, 0, 0)</code> — Black</li>
+                    <li><code>(135, 206, 235)</code> — Sky Blue</li>
+                </ul>
+            </section>
+
+            <section id="ch3">
+                <h2><span class="chapter-number">3</span>Images & Sprites</h2>
+                <p>Real games use images, not just colored rectangles. Pygame makes loading and displaying images straightforward.</p>
+                <h3>Loading Images</h3>
+                <pre data-lang="python"><code><span class="comment"># Load an image file</span>
+player_img = pygame.image.load(<span class="string">"assets/images/player.png"</span>)
+
+<span class="comment"># Convert for faster drawing (recommended for all images)</span>
+player_img = player_img.convert()
+
+<span class="comment"># For images with transparency, use convert_alpha()</span>
+player_img = pygame.image.load(<span class="string">"assets/images/player.png"</span>).convert_alpha()
+
+<span class="comment"># Scale an image</span>
+player_img = pygame.transform.scale(player_img, (<span class="number">64</span>, <span class="number">64</span>))
+
+<span class="comment"># Flip horizontally</span>
+player_img_flipped = pygame.transform.flip(player_img, <span class="keyword">True</span>, <span class="keyword">False</span>)</code></pre>
+                <h3>The Sprite System</h3>
+                <p>Pygame provides a <code>Sprite</code> class that makes organizing game objects much easier. A Sprite is an object that has an <code>image</code> and a <code>rect</code> (rectangle for position and size).</p>
+                <pre data-lang="python"><code><span class="keyword">class</span> <span class="class-name">Player</span>(pygame.sprite.Sprite):
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, x, y):
+        <span class="builtin">super</span>().__init__()
+        self.image = pygame.image.load(<span class="string">"player.png"</span>).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    <span class="keyword">def</span> <span class="function">update</span>(self):
+        <span class="comment"># Move the player</span>
+        self.rect.x += <span class="number">2</span></code></pre>
+                <h3>Sprite Groups</h3>
+                <p>Sprite Groups let you update and draw many sprites at once:</p>
+                <pre data-lang="python"><code><span class="comment"># Create a group</span>
+all_sprites = pygame.sprite.Group()
+
+<span class="comment"># Add sprites</span>
+player = Player(<span class="number">100</span>, <span class="number">200</span>)
+all_sprites.add(player)
+
+<span class="comment"># In the game loop:</span>
+all_sprites.update()      <span class="comment"># Calls update() on every sprite</span>
+all_sprites.draw(screen)  <span class="comment"># Draws every sprite on the screen</span></code></pre>
+                <div class="info-box tip">
+                    <div class="info-box-title">Why Use Sprites?</div>
+                    <p>Sprites automatically handle the <code>image</code> and <code>rect</code> relationship. Groups provide collision detection, layer ordering, and batch operations. They are the standard way to manage game objects in Pygame.</p>
+                </div>
+            </section>
+
+            <section id="ch4">
+                <h2><span class="chapter-number">4</span>Keyboard Input</h2>
+                <p>Games need responsive controls. Pygame offers two ways to handle keyboard input: <strong>event-based</strong> (for one-time presses) and <strong>state-based</strong> (for held keys).</p>
+                <h3>Event-Based Input (One-Time Press)</h3>
+                <p>Use this for actions that should happen once per key press, like jumping or pausing:</p>
+                <pre data-lang="python"><code><span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():
+    <span class="keyword">if</span> event.type == pygame.KEYDOWN:
+        <span class="keyword">if</span> event.key == pygame.K_SPACE:
+            <span class="function">print</span>(<span class="string">"Jump!"</span>)
+        <span class="keyword">elif</span> event.key == pygame.K_ESCAPE:
+            <span class="function">print</span>(<span class="string">"Pause menu"</span>)</code></pre>
+                <h3>State-Based Input (Held Keys)</h3>
+                <p>Use this for continuous movement, like running left or right:</p>
+                <pre data-lang="python"><code>keys = pygame.key.get_pressed()
+
+<span class="keyword">if</span> keys[pygame.K_LEFT] <span class="keyword">or</span> keys[pygame.K_a]:
+    player.rect.x -= <span class="number">5</span>  <span class="comment"># Move left</span>
+<span class="keyword">if</span> keys[pygame.K_RIGHT] <span class="keyword">or</span> keys[pygame.K_d]:
+    player.rect.x += <span class="number">5</span>  <span class="comment"># Move right</span></code></pre>
+                <h3>Common Key Constants</h3>
+                <table>
+                    <tr><th>Key</th><th>Constant</th></tr>
+                    <tr><td>Arrow Left</td><td><code>pygame.K_LEFT</code></td></tr>
+                    <tr><td>Arrow Right</td><td><code>pygame.K_RIGHT</code></td></tr>
+                    <tr><td>Arrow Up</td><td><code>pygame.K_UP</code></td></tr>
+                    <tr><td>Space</td><td><code>pygame.K_SPACE</code></td></tr>
+                    <tr><td>Escape</td><td><code>pygame.K_ESCAPE</code></td></tr>
+                    <tr><td>A-Z</td><td><code>pygame.K_a</code> to <code>pygame.K_z</code></td></tr>
+                    <tr><td>0-9</td><td><code>pygame.K_0</code> to <code>pygame.K_9</code></td></tr>
+                </table>
+                <div class="info-box warning">
+                    <div class="info-box-title">Common Mistake</div>
+                    <p>Do not put movement inside <code>KEYDOWN</code> events. If the player holds the key, the event only fires once. Use <code>key.get_pressed()</code> for continuous movement.</p>
+                </div>
+            </section>
+
+            <section id="ch5">
+                <h2><span class="chapter-number">5</span>Animation</h2>
+                <p>Animation in games is simply showing different images in sequence. We cycle through frames based on time or movement state.</p>
+                <h3>Frame-Based Animation</h3>
+                <pre data-lang="python"><code><span class="keyword">class</span> <span class="class-name">Player</span>(pygame.sprite.Sprite):
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, x, y):
+        <span class="builtin">super</span>().__init__()
+        <span class="comment"># Load all animation frames</span>
+        self.frames = [
+            pygame.image.load(<span class="string">"run1.png"</span>),
+            pygame.image.load(<span class="string">"run2.png"</span>)
+        ]
+        self.frame_index = <span class="number">0</span>
+        self.animation_timer = <span class="number">0</span>
+        self.image = self.frames[<span class="number">0</span>]
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    <span class="keyword">def</span> <span class="function">update</span>(self):
+        <span class="comment"># Increment timer every frame</span>
+        self.animation_timer += <span class="number">1</span>
+
+        <span class="comment"># Change frame every 8 frames (at 60 FPS = ~7.5 changes/sec)</span>
+        <span class="keyword">if</span> self.animation_timer > <span class="number">8</span>:
+            self.animation_timer = <span class="number">0</span>
+            self.frame_index = (self.frame_index + <span class="number">1</span>) % <span class="builtin">len</span>(self.frames)
+            self.image = self.frames[self.frame_index]</code></pre>
+                <h3>State-Based Animation</h3>
+                <p>In our platformer, we switch animations based on the player's state:</p>
+                <pre data-lang="python"><code><span class="keyword">def</span> <span class="function">animate</span>(self):
+    <span class="keyword">if</span> <span class="keyword">not</span> self.on_ground:
+        self.image = self.images[<span class="string">'jump'</span>]
+    <span class="keyword">elif</span> self.vel_x != <span class="number">0</span>:
+        <span class="comment"># Running animation</span>
+        self.animation_timer += <span class="number">1</span>
+        <span class="keyword">if</span> self.animation_timer > <span class="number">8</span>:
+            self.animation_timer = <span class="number">0</span>
+            self.animation_frame = <span class="number">1</span> - self.animation_frame
+        self.image = self.images[<span class="string">f'run{self.animation_frame + 1}'</span>]
+    <span class="keyword">else</span>:
+        self.image = self.images[<span class="string">'idle'</span>]
+
+    <span class="comment"># Flip if facing left</span>
+    <span class="keyword">if</span> <span class="keyword">not</span> self.facing_right:
+        self.image = pygame.transform.flip(self.image, <span class="keyword">True</span>, <span class="keyword">False</span>)</code></pre>
+                <div class="info-box tip">
+                    <div class="info-box-title">Pro Tip</div>
+                    <p>Use <code>pygame.transform.flip()</code> instead of duplicating left-facing sprites. It saves memory and keeps your asset folder clean.</p>
+                </div>
+            </section>
+
+            <section id="ch6">
+                <h2><span class="chapter-number">6</span>Physics & Collision</h2>
+                <p>A platformer needs gravity, jumping, and solid ground. We implement simple physics and use <strong>AABB collision</strong> (Axis-Aligned Bounding Box) to keep the player on platforms.</p>
+                <h3>Gravity and Velocity</h3>
+                <p>Instead of directly setting position, we use velocity variables:</p>
+                <pre data-lang="python"><code><span class="comment"># In the player class</span>
+self.vel_x = <span class="number">0</span>   <span class="comment"># Horizontal velocity</span>
+self.vel_y = <span class="number">0</span>   <span class="comment"># Vertical velocity (affected by gravity)</span>
+
+GRAVITY = <span class="number">0.6</span>
+JUMP_STRENGTH = -<span class="number">12</span>
+MAX_FALL_SPEED = <span class="number">12</span>
+
+<span class="keyword">def</span> <span class="function">update</span>(self):
+    <span class="comment"># Apply gravity</span>
+    self.vel_y += GRAVITY
+    <span class="keyword">if</span> self.vel_y > MAX_FALL_SPEED:
+        self.vel_y = MAX_FALL_SPEED
+
+    <span class="comment"># Move by velocity</span>
+    self.rect.y += self.vel_y</code></pre>
+                <h3>Collision Detection</h3>
+                <p>We check collision separately for horizontal and vertical movement:</p>
+                <pre data-lang="python"><code><span class="keyword">def</span> <span class="function">_check_collision</span>(self, platforms, direction):
+    <span class="keyword">for</span> platform <span class="keyword">in</span> platforms:
+        <span class="keyword">if</span> self.rect.colliderect(platform.rect):
+            <span class="keyword">if</span> direction == <span class="string">'x'</span>:
+                <span class="keyword">if</span> self.vel_x > <span class="number">0</span>:
+                    self.rect.right = platform.rect.left
+                <span class="keyword">elif</span> self.vel_x < <span class="number">0</span>:
+                    self.rect.left = platform.rect.right
+                self.vel_x = <span class="number">0</span>
+
+            <span class="keyword">elif</span> direction == <span class="string">'y'</span>:
+                <span class="keyword">if</span> self.vel_y > <span class="number">0</span>:
+                    <span class="comment"># Landing on top</span>
+                    self.rect.bottom = platform.rect.top
+                    self.vel_y = <span class="number">0</span>
+                    self.on_ground = <span class="keyword">True</span>
+                <span class="keyword">elif</span> self.vel_y < <span class="number">0</span>:
+                    <span class="comment"># Hitting head on bottom</span>
+                    self.rect.top = platform.rect.bottom
+                    self.vel_y = <span class="number">0</span></code></pre>
+                <h3>Why Check X and Y Separately?</h3>
+                <p>If you move diagonally and check collision once, you cannot tell which side you hit. By separating axes, you can correctly resolve: hitting a wall stops horizontal movement, but landing on ground stops vertical movement.</p>
+                <div class="info-box success">
+                    <div class="info-box-title">How It Works</div>
+                    <p>1. Move horizontally &rarr; check X collisions &rarr; resolve<br>2. Move vertically &rarr; check Y collisions &rarr; resolve<br>3. If landing on a platform, set <code>on_ground = True</code><br>4. Only allow jumping if <code>on_ground</code> is True</p>
+                </div>
+            </section>
+
+            <section id="ch7">
+                <h2><span class="chapter-number">7</span>Tilemaps & Levels</h2>
+                <p>Instead of hardcoding every platform position, we use a <strong>tilemap</strong> — a grid of characters where each character represents a tile type.</p>
+                <h3>Level Map Format</h3>
+                <p>We use ASCII art to design levels. Each character has a meaning:</p>
+                <pre data-lang="text"><code># = Grass block (solid)
+B = Brick block (solid)
+? = Question block (solid, can be hit)
+. = Dirt block (solid, underground)
+P = Player start position
+E = Enemy
+C = Coin
+F = Flag (end of level)
+^ = Cloud (decoration)
+* = Bush (decoration)
+M = Mountain (decoration)
+  = Empty space</code></pre>
+                <h3>Parsing the Level</h3>
+                <p>We read the map string and create game objects based on each character:</p>
+                <pre data-lang="python"><code><span class="keyword">class</span> <span class="class-name">Level</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, level_data):
+        self.platforms = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
+        self.coins = pygame.sprite.Group()
+        self.player_start = (<span class="number">100</span>, <span class="number">300</span>)
+        self._parse(level_data)
+
+    <span class="keyword">def</span> <span class="function">_parse</span>(self, level_data):
+        lines = level_data.strip().split(<span class="string">'\n'</span>)
+
+        <span class="keyword">for</span> row_idx, line <span class="keyword">in</span> <span class="builtin">enumerate</span>(lines):
+            <span class="keyword">for</span> col_idx, char <span class="keyword">in</span> <span class="builtin">enumerate</span>(line):
+                x = col_idx * TILE_SIZE  <span class="comment"># 32 pixels per tile</span>
+                y = row_idx * TILE_SIZE
+
+                <span class="keyword">if</span> char == <span class="string">'#'</span>:
+                    self.platforms.add(Platform(x, y, <span class="string">'grass'</span>))
+                <span class="keyword">elif</span> char == <span class="string">'B'</span>:
+                    self.platforms.add(Platform(x, y, <span class="string">'brick'</span>))
+                <span class="keyword">elif</span> char == <span class="string">'P'</span>:
+                    self.player_start = (x, y)
+                <span class="keyword">elif</span> char == <span class="string">'E'</span>:
+                    self.enemies.add(Enemy(x, y))
+                <span class="keyword">elif</span> char == <span class="string">'C'</span>:
+                    self.coins.add(Coin(x, y))
+                <span class="keyword">elif</span> char == <span class="string">'F'</span>:
+                    self.flags.add(Flag(x, y))</code></pre>
+                <div class="info-box tip">
+                    <div class="info-box-title">Why Tilemaps?</div>
+                    <p>Tilemaps let you design levels in a text editor. You can see the entire level layout at a glance, and modifying a level is as easy as editing text. This is how many classic games (including Mario) were designed.</p>
+                </div>
+            </section>
+
+            <section id="ch8">
+                <h2><span class="chapter-number">8</span>Enemies & Collectibles</h2>
+                <p>Enemies add challenge, and collectibles give the player goals. Both are sprites that update every frame.</p>
+                <h3>Enemy AI — Simple Patrol</h3>
+                <p>Our enemies walk back and forth within a set distance:</p>
+                <pre data-lang="python"><code><span class="keyword">class</span> <span class="class-name">Enemy</span>(pygame.sprite.Sprite):
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, x, y, patrol_distance=<span class="number">100</span>):
+        <span class="builtin">super</span>().__init__()
+        self.image = load_image(<span class="string">"enemy"</span>)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.start_x = x
+        self.patrol_distance = patrol_distance
+        self.speed = <span class="number">2</span>
+        self.direction = <span class="number">1</span>
+
+    <span class="keyword">def</span> <span class="function">update</span>(self, platforms):
+        <span class="comment"># Move</span>
+        self.rect.x += self.speed * self.direction
+
+        <span class="comment"># Turn around if too far</span>
+        <span class="keyword">if</span> <span class="builtin">abs</span>(self.rect.x - self.start_x) > self.patrol_distance:
+            self.direction *= -<span class="number">1</span>
+            self.image = pygame.transform.flip(self.image, <span class="keyword">True</span>, <span class="keyword">False</span>)
+
+        <span class="comment"># Gravity</span>
+        self.vel_y += GRAVITY
+        self.rect.y += self.vel_y
+
+        <span class="comment"># Land on platforms</span>
+        <span class="keyword">for</span> platform <span class="keyword">in</span> platforms:
+            <span class="keyword">if</span> self.rect.colliderect(platform.rect):
+                <span class="keyword">if</span> self.vel_y > <span class="number">0</span>:
+                    self.rect.bottom = platform.rect.top
+                    self.vel_y = <span class="number">0</span></code></pre>
+                <h3>Coin with Floating Animation</h3>
+                <p>Coins bob up and down using a sine wave:</p>
+                <pre data-lang="python"><code><span class="keyword">import</span> math
+
+<span class="keyword">class</span> <span class="class-name">Coin</span>(pygame.sprite.Sprite):
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, x, y):
+        <span class="builtin">super</span>().__init__()
+        self.image = load_image(<span class="string">"coin"</span>)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.base_y = y
+        self.float_offset = <span class="number">0</span>
+
+    <span class="keyword">def</span> <span class="function">update</span>(self):
+        self.float_offset += <span class="number">0.1</span>
+        self.rect.y = self.base_y + <span class="builtin">int</span>(math.sin(self.float_offset) * <span class="number">4</span>)</code></pre>
+                <h3>Mario-Style Stomp</h3>
+                <p>When the player hits an enemy from above, the enemy dies:</p>
+                <pre data-lang="python"><code><span class="keyword">for</span> enemy <span class="keyword">in</span> enemies:
+    <span class="keyword">if</span> self.rect.colliderect(enemy.rect):
+        <span class="comment"># Stomp: falling AND hitting the top half of enemy</span>
+        <span class="keyword">if</span> self.vel_y > <span class="number">0</span> <span class="keyword">and</span> self.rect.bottom <= enemy.rect.centery + <span class="number">8</span>:
+            enemy.kill()          <span class="comment"># Remove enemy</span>
+            self.vel_y = -<span class="number">8</span>      <span class="comment"># Bounce up</span>
+            self.coins += <span class="number">5</span>      <span class="comment"># Bonus points</span>
+        <span class="keyword">else</span>:
+            self.take_damage()</code></pre>
+            </section>
+
+            <section id="ch9">
+                <h2><span class="chapter-number">9</span>Camera & Scrolling</h2>
+                <p>A camera follows the player and offsets everything we draw. This creates the illusion of a large world that scrolls as the player moves.</p>
+                <h3>Camera Concept</h3>
+                <p>The camera is a rectangle representing the visible portion of the world. To apply the camera, we subtract the camera's position from every object's position before drawing.</p>
+                <pre data-lang="python"><code><span class="keyword">class</span> <span class="class-name">Camera</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, width, height):
+        self.camera = pygame.Rect(<span class="number">0</span>, <span class="number">0</span>, width, height)
+        self.smoothness = <span class="number">0.1</span>
+
+    <span class="keyword">def</span> <span class="function">apply</span>(self, entity):
+        <span class="comment"># Offset entity's rect by camera position</span>
+        <span class="keyword">return</span> entity.rect.move(self.camera.topleft)
+
+    <span class="keyword">def</span> <span class="function">update</span>(self, target):
+        <span class="comment"># Center camera on target (player)</span>
+        x = -target.rect.centerx + SCREEN_WIDTH // <span class="number">2</span>
+        y = -target.rect.centery + SCREEN_HEIGHT // <span class="number">2</span>
+
+        <span class="comment"># Clamp to level bounds</span>
+        x = <span class="builtin">min</span>(<span class="number">0</span>, x)
+        y = <span class="builtin">min</span>(<span class="number">0</span>, y)
+        x = <span class="builtin">max</span>(-(self.width - SCREEN_WIDTH), x)
+        y = <span class="builtin">max</span>(-(self.height - SCREEN_HEIGHT), y)
+
+        <span class="comment"># Smooth interpolation (lerp)</span>
+        self.camera.x += <span class="builtin">int</span>((x - self.camera.x) * self.smoothness)
+        self.camera.y += <span class="builtin">int</span>((y - self.camera.y) * self.smoothness)</code></pre>
+                <h3>Drawing with Camera</h3>
+                <p>Every draw call uses <code>camera.apply(sprite)</code> to get the screen position:</p>
+                <pre data-lang="python"><code><span class="comment"># In the draw method:</span>
+<span class="keyword">for</span> platform <span class="keyword">in</span> level.platforms:
+    screen.blit(platform.image, camera.apply(platform))
+
+screen.blit(player.image, camera.apply(player))</code></pre>
+                <div class="info-box tip">
+                    <div class="info-box-title">Smooth Camera</div>
+                    <p>Instead of snapping the camera instantly to the player, we use <strong>linear interpolation (lerp)</strong>: <code>camera += (target - camera) * 0.1</code>. This creates a smooth, professional follow effect.</p>
+                </div>
+            </section>
+
+            <section id="ch10">
+                <h2><span class="chapter-number">10</span>UI & Game States</h2>
+                <p>Games have multiple states: Menu, Playing, Paused, Game Over. We use an <strong>Enum</strong> to track the current state and draw different screens accordingly.</p>
+                <h3>Game State Enum</h3>
+                <pre data-lang="python"><code><span class="keyword">from</span> enum <span class="keyword">import</span> Enum
+
+<span class="keyword">class</span> <span class="class-name">GameState</span>(Enum):
+    MENU = <span class="number">0</span>
+    PLAYING = <span class="number">1</span>
+    PAUSED = <span class="number">2</span>
+    GAME_OVER = <span class="number">3</span>
+    LEVEL_COMPLETE = <span class="number">4</span>
+    VICTORY = <span class="number">5</span></code></pre>
+                <h3>State Machine in the Game Loop</h3>
+                <pre data-lang="python"><code><span class="keyword">class</span> <span class="class-name">Game</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(self):
+        self.state = GameState.MENU
+
+    <span class="keyword">def</span> <span class="function">_handle_input</span>(self, event):
+        <span class="keyword">if</span> event.type == pygame.KEYDOWN:
+            <span class="keyword">if</span> self.state == GameState.MENU:
+                <span class="keyword">if</span> event.key == pygame.K_SPACE:
+                    self.load_level(<span class="number">0</span>)
+            <span class="keyword">elif</span> self.state == GameState.PAUSED:
+                <span class="keyword">if</span> event.key == pygame.K_ESCAPE:
+                    self.state = GameState.PLAYING
+
+    <span class="keyword">def</span> <span class="function">_draw</span>(self):
+        <span class="keyword">if</span> self.state == GameState.MENU:
+            self.draw_menu()
+        <span class="keyword">elif</span> self.state == GameState.PLAYING:
+            self.draw_game()
+        <span class="keyword">elif</span> self.state == GameState.PAUSED:
+            self.draw_game()
+            self.draw_pause_overlay()</code></pre>
+                <h3>Drawing Text</h3>
+                <p>Pygame uses <code>pygame.font</code> to render text:</p>
+                <pre data-lang="python"><code><span class="comment"># Create a font (None = default font, 36 = size)</span>
+font = pygame.font.Font(<span class="keyword">None</span>, <span class="number">36</span>)
+
+<span class="comment"># Render text to a surface</span>
+text_surface = font.render(<span class="string">"Game Over"</span>, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))
+
+<span class="comment"># Center it on screen</span>
+text_rect = text_surface.get_rect(center=(SCREEN_WIDTH//<span class="number">2</span>, SCREEN_HEIGHT//<span class="number">2</span>))
+screen.blit(text_surface, text_rect)</code></pre>
+                <h3>Semi-Transparent Overlays</h3>
+                <p>For pause menus, we draw a dark overlay over the game:</p>
+                <pre data-lang="python"><code>overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+overlay.fill((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+overlay.set_alpha(<span class="number">160</span>)  <span class="comment"># 0 = fully transparent, 255 = fully opaque</span>
+screen.blit(overlay, (<span class="number">0</span>, <span class="number">0</span>))</code></pre>
+            </section>
+
+            <hr>
+
+            <section id="ch11">
+                <h2><span class="chapter-number">11</span>Full Game Breakdown</h2>
+                <p>Now let's look at how all these pieces fit together in our complete platformer. The game is organized into logical classes, each responsible for one aspect.</p>
+                <h3>Architecture Overview</h3>
+                <ol>
+                    <li><strong>Game</strong> — Main class, owns the window, clock, and state machine</li>
+                    <li><strong>Level</strong> — Parses tilemap, manages all world objects</li>
+                    <li><strong>Player</strong> — Handles movement, animation, collision, lives</li>
+                    <li><strong>Enemy</strong> — Patrol AI, gravity, platform collision</li>
+                    <li><strong>Camera</strong> — Smooth follow, world-to-screen conversion</li>
+                    <li><strong>UI</strong> — HUD, menus, text rendering</li>
+                </ol>
+                <h3>Game Loop Flow</h3>
+                <pre data-lang="python"><code><span class="keyword">def</span> <span class="function">run</span>(self):
+    <span class="keyword">while</span> running:
+        <span class="comment"># 1. Process events (input)</span>
+        <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():
+            self._handle_input(event)
+
+        <span class="comment"># 2. Update game logic</span>
+        self._update()
+
+        <span class="comment"># 3. Draw everything</span>
+        self._draw()
+        pygame.display.flip()
+
+        <span class="comment"># 4. Maintain frame rate</span>
+        self.clock.tick(<span class="number">60</span>)</code></pre>
+                <h3>Player Update Sequence</h3>
+                <p>Inside <code>Player.update()</code>, this happens every frame:</p>
+                <ol>
+                    <li>Read keyboard state for movement</li>
+                    <li>Apply jump if on ground and space pressed</li>
+                    <li>Apply gravity to vertical velocity</li>
+                    <li>Move horizontally, resolve X collisions</li>
+                    <li>Move vertically, resolve Y collisions, detect landing</li>
+                    <li>Check enemy collisions (stomp or take damage)</li>
+                    <li>Check spike collisions</li>
+                    <li>Collect coins</li>
+                    <li>Check flag (level complete)</li>
+                    <li>Update animation based on state</li>
+                </ol>
+                <h3>Level Design Example</h3>
+                <p>Here is Level 1 from our game:</p>
+                <pre data-lang="text"><code>M                          ^                                    M
+M              ^                    ^        C   C              M
+M     *              *         B   B   B                       M
+M                            B   B   B   B       ^            M
+M          C   C   C       B   B   B   B   B                 M
+M                        B   B   ?   B   B   B     *         M
+M        B   B   B     B   B   B   B   B   B   B             M
+M      B   B   B   B   B   B   B   B   B   B   B   B         M
+M    B   B   B   B   B   B   B   B   B   B   B   B   B       M
+M  P B   B   B   B   B   B   B   B   B   B   B   B   B   F   M
+#  #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #
+.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .</code></pre>
+                <p>The player (<code>P</code>) starts on the left, collects coins (<code>C</code>), jumps on brick platforms (<code>B</code>), hits a question block (<code>?</code>), and reaches the flag (<code>F</code>) to complete the level.</p>
+            </section>
+
+            <section id="ch12">
+                <h2><span class="chapter-number">12</span>Running the Game</h2>
+                <h3>Step 1: Install Dependencies</h3>
+                <pre data-lang="bash"><code>pip install pygame</code></pre>
+                <h3>Step 2: Navigate to the Project</h3>
+                <pre data-lang="bash"><code>cd pygame-platformer/src</code></pre>
+                <h3>Step 3: Run the Game</h3>
+                <pre data-lang="bash"><code>python game.py</code></pre>
+                <h3>Controls</h3>
+                <table>
+                    <tr><th>Action</th><th>Key</th></tr>
+                    <tr><td>Move Left</td><td><kbd>&larr;</kbd> or <kbd>A</kbd></td></tr>
+                    <tr><td>Move Right</td><td><kbd>&rarr;</kbd> or <kbd>D</kbd></td></tr>
+                    <tr><td>Jump</td><td><kbd>Space</kbd> or <kbd>&uarr;</kbd> or <kbd>W</kbd></td></tr>
+                    <tr><td>Pause</td><td><kbd>Esc</kbd></td></tr>
+                    <tr><td>Restart Level</td><td><kbd>R</kbd></td></tr>
+                </table>
+                <div class="info-box success">
+                    <div class="info-box-title">You Did It!</div>
+                    <p>You now have a working platformer game and a solid understanding of Pygame fundamentals. Try modifying the levels, adding new enemies, or creating new tile types. Game development is all about experimentation!</p>
+                </div>
+            </section>
+
+            <hr>
+
+            <section id="cheatsheet">
+                <h2>Quick API Reference</h2>
+                <h3>Initialization</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.init()</code></td><td>Initialize all Pygame modules</td></tr>
+                    <tr><td><code>pygame.quit()</code></td><td>Uninitialize all Pygame modules</td></tr>
+                </table>
+                <h3>Display</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.display.set_mode((w, h))</code></td><td>Create game window</td></tr>
+                    <tr><td><code>pygame.display.set_caption(title)</code></td><td>Set window title</td></tr>
+                    <tr><td><code>pygame.display.flip()</code></td><td>Update entire display</td></tr>
+                </table>
+                <h3>Surfaces</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.Surface((w, h))</code></td><td>Create blank surface</td></tr>
+                    <tr><td><code>surf.fill((r, g, b))</code></td><td>Fill with color</td></tr>
+                    <tr><td><code>screen.blit(surf, (x, y))</code></td><td>Draw surface on screen</td></tr>
+                    <tr><td><code>surf.set_alpha(n)</code></td><td>Set transparency (0-255)</td></tr>
+                </table>
+                <h3>Drawing</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.draw.rect(s, c, rect)</code></td><td>Draw rectangle</td></tr>
+                    <tr><td><code>pygame.draw.circle(s, c, pos, r)</code></td><td>Draw circle</td></tr>
+                    <tr><td><code>pygame.draw.line(s, c, p1, p2, w)</code></td><td>Draw line</td></tr>
+                    <tr><td><code>pygame.draw.polygon(s, c, points)</code></td><td>Draw polygon</td></tr>
+                </table>
+                <h3>Images</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.image.load(path)</code></td><td>Load image file</td></tr>
+                    <tr><td><code>img.convert()</code></td><td>Optimize for display</td></tr>
+                    <tr><td><code>img.convert_alpha()</code></td><td>Optimize with transparency</td></tr>
+                    <tr><td><code>pygame.transform.scale(img, size)</code></td><td>Resize image</td></tr>
+                    <tr><td><code>pygame.transform.flip(img, x, y)</code></td><td>Flip image</td></tr>
+                </table>
+                <h3>Input</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.event.get()</code></td><td>Get all pending events</td></tr>
+                    <tr><td><code>pygame.key.get_pressed()</code></td><td>Get current key states</td></tr>
+                    <tr><td><code>pygame.K_SPACE</code></td><td>Space key constant</td></tr>
+                </table>
+                <h3>Time</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.time.Clock()</code></td><td>Create FPS clock</td></tr>
+                    <tr><td><code>clock.tick(fps)</code></td><td>Limit to target FPS</td></tr>
+                </table>
+                <h3>Sprites</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.sprite.Sprite</code></td><td>Base sprite class</td></tr>
+                    <tr><td><code>pygame.sprite.Group()</code></td><td>Sprite container</td></tr>
+                    <tr><td><code>group.add(sprite)</code></td><td>Add sprite to group</td></tr>
+                    <tr><td><code>group.update()</code></td><td>Call update on all sprites</td></tr>
+                    <tr><td><code>group.draw(surface)</code></td><td>Draw all sprites</td></tr>
+                    <tr><td><code>sprite.kill()</code></td><td>Remove from all groups</td></tr>
+                    <tr><td><code>rect.colliderect(other)</code></td><td>Check AABB collision</td></tr>
+                </table>
+                <h3>Text</h3>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td><code>pygame.font.Font(file, size)</code></td><td>Create font object</td></tr>
+                    <tr><td><code>font.render(text, aa, color)</code></td><td>Render text to surface</td></tr>
+                </table>
+            </section>
+
+            <section id="resources">
+                <h2>Resources</h2>
+                <ul>
+                    <li><a href="https://www.pygame.org/docs/" target="_blank">Official Pygame Documentation</a></li>
+                    <li><a href="https://github.com/pygame/pygame" target="_blank">Pygame GitHub Repository</a></li>
+                    <li><a href="https://www.pygame.org/wiki/tutorials" target="_blank">Pygame Tutorials Wiki</a></li>
+                    <li><a href="https://opengameart.org/" target="_blank">OpenGameArt — Free game assets</a></li>
+                    <li><a href="https://itch.io/game-assets/free" target="_blank">itch.io — Free game assets</a></li>
+                </ul>
+                <div class="info-box tip">
+                    <div class="info-box-title">Next Steps</div>
+                    <p>Now that you understand the basics, try these challenges:</p>
+                    <ul>
+                        <li>Add a double-jump ability</li>
+                        <li>Create a power-up that makes the player invincible</li>
+                        <li>Add sound effects using <code>pygame.mixer</code></li>
+                        <li>Build a level editor with Pygame</li>
+                        <li>Add parallax scrolling backgrounds</li>
+                        <li>Implement a save/load system with JSON</li>
+                    </ul>
+                </div>
+            </section>
+
+            <footer style="margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
+                <p>Pygame Learning Guide &mdash; Built for learning game development with Python</p>
+                <p style="margin-top: 8px;">Happy coding!</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Highlight active nav link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        function highlightNav() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        window.addEventListener('scroll', highlightNav);
+        highlightNav();
+    </script>
+</body>
+</html>
