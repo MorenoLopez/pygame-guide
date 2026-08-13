@@ -4,7 +4,7 @@ A complete Mario-like platformer built with Pygame, created as a learning projec
 
 ## What's Included
 
-- **guide.html** — A comprehensive dark-mode HTML guide that teaches Pygame from scratch
+- **index.html** — A comprehensive dark-mode HTML guide that teaches Pygame from scratch
 - **src/game.py** — The complete working game (3 levels, player, enemies, coins, camera, UI)
 - **assets/images/** — 16 game sprites generated for the project
 
@@ -37,13 +37,13 @@ pygame-platformer/
 │   └── images/          # All game sprites
 ├── src/
 │   └── game.py          # Complete game code
-├── guide.html           # Learning guide (open in browser)
+├── index.html           # Learning guide (open in browser)
 └── requirements.txt
 ```
 
 ## Learning Path
 
-1. Open `guide.html` in your browser
+1. Open `index.html` in your browser
 2. Read through Chapters 1–10 to learn Pygame concepts
 3. Study `src/game.py` to see how everything connects
 4. Modify the game and experiment!
